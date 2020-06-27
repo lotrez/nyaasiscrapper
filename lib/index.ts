@@ -4,6 +4,8 @@ import { numberCatValues, stringCatValues, argStringValues, argValues } from "./
 import { serialize } from "v8";
 const fetch = require('node-fetch');
 var parser = require('fast-xml-parser');
+var HTMLParser = require('node-html-parser');
+
 
 const NYAA_URL = "https://nyaa.si"
 
@@ -11,6 +13,7 @@ export default async function searchNyaa(options: searchOptions){
     let optionsCleaned = cleanOptions(options)
 
     let optionsSerialized = serializeOptions(optionsCleaned)
+    console.log(optionsSerialized)
     return new Promise(resolve => {
         fetch(NYAA_URL + optionsSerialized)
             .then((response) => response.text())
@@ -24,11 +27,14 @@ export default async function searchNyaa(options: searchOptions){
     })
 }
 
-function parseData(data: string, options: searchOptions): animeItem[]{
+async function parseData(data: string, options: searchOptions){
     let itemArray: animeItem[] = []
     let jsonData = parser.parse(data)
     jsonData = jsonData["rss"]["channel"]["item"]
-    // console.dir(jsonData)
+    if (jsonData.length == undefined){
+        // only one result
+        jsonData = [jsonData]
+    }
     jsonData.forEach(anime => {
         let item: animeItem = {
             title: anime["title"],
@@ -50,20 +56,33 @@ function parseData(data: string, options: searchOptions): animeItem[]{
     });
     if(options.advanced){
         // advanced, need to get more info before returning
-        var nArray = Promise.all(
+        var nArray = await Promise.all(
             itemArray.map(
-                item => fetch(item["nyaaUrl"]).then(
-                    (response) => advancedInfo(response)
+                item => fetch(item["nyaaUrl"])
+                .then((response) => response.text())
+                .then(
+                    (response) => advancedInfo(item, response)
                 )
             )
         )
+        return(nArray)
     }else{
         return itemArray
     }
 }
 
-function advancedInfo(item: animeItem):animeItem{
-
+/**
+ * function that does the parsing of the nyaaUrl page
+ * @param item 
+ */
+function advancedInfo(item: animeItem, pageData: string):animeItem{
+    const root = HTMLParser.parse(pageData)
+    // console.log(pageData)
+    // console.log(root.firstChild.structure);
+    // need to get magnet, user, files and comments
+    let userDiv = root.querySelectorAll("body")
+    console.dir(userDiv)
+    item["user"] = userDiv[0].innerHTML
     return item
 }
 
@@ -107,13 +126,14 @@ function cleanOptions<searchOptions>(options: searchOptions){
 
 function main(){
     let searchTest: searchOptions = {
-        term: "attack on titan",
-        category: "Anime English-translated",
-        filter: 0,
-        user: "NoobSubs",
+        term: "[Arisaka] Plunderer - 24 VOSTFR [720p]",
+        // category: "Anime English-translated",
+        // filter: 0,
+        // user: "NoobSubs",
         page: 0,
         sortType: "comments",
-        sortDirection: "Descending"
+        sortDirection: "Descending",
+        advanced: true
     }
     searchNyaa(searchTest).then(response => console.dir(response))
 }

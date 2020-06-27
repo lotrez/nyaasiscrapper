@@ -42,7 +42,6 @@ export interface animeItem{
     title: string;
     category: numberCat;
     categoryId: stringCat;
-    magnet?: string;
     downloadUrl: string;
     size: string;
     date: Date;
@@ -50,12 +49,13 @@ export interface animeItem{
     leechers: number;
     grabs: number;
     nyaaUrl: string;
-    user?: string;
     infoHash: string;
-    files?: file[];
     trusted: boolean;
     remake: boolean;
     description: string;
+    magnet?: string;
+    user?: string;
+    files?: file[];
     comments?: comment[];
 }
 
