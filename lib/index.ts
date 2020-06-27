@@ -1,10 +1,9 @@
 'use strict'
-import { numberCat, searchOptions, item } from "./index.d";
+import { numberCat, searchOptions, animeItem } from "./index.d";
 import { numberCatValues, stringCatValues, argStringValues, argValues } from "./values"
 import { serialize } from "v8";
 const fetch = require('node-fetch');
-const jsdom = require("jsdom");
-const { JSDOM } = jsdom;
+var parser = require('fast-xml-parser');
 
 const NYAA_URL = "https://nyaa.si"
 
@@ -12,66 +11,64 @@ export default async function searchNyaa(options: searchOptions){
     let optionsCleaned = cleanOptions(options)
 
     let optionsSerialized = serializeOptions(optionsCleaned)
-    console.log(optionsSerialized)
-    await fetch(NYAA_URL + optionsSerialized)
-        .then((response) => response.text())
-        .then(data => {
-            // console.log(data)
-            return parseData(data, optionsCleaned);
-        })
-        .catch(error => {
-            throw(error);
-        });
+    return new Promise(resolve => {
+        fetch(NYAA_URL + optionsSerialized)
+            .then((response) => response.text())
+            .then(data => {
+                resolve(parseData(data, optionsCleaned))
+            })
+            .catch(error => {
+                throw(error);
+            });
+
+    })
 }
 
-function parseData(data: string, options: searchOptions): item[]{
-    let itemArray: item[] = []
-    const dom: any = new JSDOM(data)
-    let htmlItems = dom.window.document.getElementsByTagName('tr')
-    let items = Array.prototype.slice.call(htmlItems)
-    items.forEach(item => {
-        // console.log(item)
-        let children = item.children
-        children = Array.prototype.slice.call(children) 
-        if(children.length == 9){
-            children.splice(1,2)
+function parseData(data: string, options: searchOptions): animeItem[]{
+    let itemArray: animeItem[] = []
+    let jsonData = parser.parse(data)
+    jsonData = jsonData["rss"]["channel"]["item"]
+    // console.dir(jsonData)
+    jsonData.forEach(anime => {
+        let item: animeItem = {
+            title: anime["title"],
+            downloadUrl: anime["link"],
+            nyaaUrl: anime["guid"],
+            date: new Date(anime["pubDate"]),
+            seeders: anime["nyaa:seeders"],
+            leechers: anime["nyaa:leechers"],
+            grabs: anime["nyaa:downloads"],
+            infoHash: anime["nyaa:infoHash"],
+            category: anime["nyaa:category"],
+            categoryId: anime["nyaa:categoryId"],
+            remake: anime["nyaa:remake"],
+            trusted: anime["nyaa:trusted"],
+            size: anime["nyaa:size"],
+            description: anime["description"]
         }
-        console.dir(children)
-        let links = children[2].children
-        let nyaaLink = children[1]
-        console.log(children[1].firstChild.nextSibling.nextSibling.textContent)
-        // console.table(children[1].href)
-        // console.dir(Object.keys(nyaaLink))
-        // for (var key in nyaaLink) {
-        //     if (nyaaLink.hasOwnProperty(key)) {
-        //         console.log(key)
-        //     }
-        // }
-        // // console.table(nyaaLink[nyaaLink.length - 1].innerText)
-        // console.table(nyaaLink[nyaaLink.length - 1].href)
-        var result: item = {
-            title: children[1].lastChild.wholeText,
-            category: options['category'],
-            magnet: links[1].href,
-            downloadUrl: NYAA_URL + links[0].href,
-            size: children[3].innerText,
-            date: new Date(children[4].innerHTML),
-            seeders: parseInt(children[5].innerHTML),
-            leechers: parseInt(children[5].innerHTML),
-            grabs: parseInt(children[6].innerHTML),
-            nyaaUrl: "nyaaLink[0].href"
-        }
-        console.dir(result)
+        itemArray.push(item)
     });
-    return itemArray
+    if(options.advanced){
+        // advanced, need to get more info before returning
+        var nArray = Promise.all(
+            itemArray.map(
+                item => fetch(item["nyaaUrl"]).then(
+                    (response) => advancedInfo(response)
+                )
+            )
+        )
+    }else{
+        return itemArray
+    }
+}
+
+function advancedInfo(item: animeItem):animeItem{
+
+    return item
 }
 
 function serializeOptions(options: searchOptions):string{
-    let optionString: string = '/'
-    if(options['user']){
-        optionString += "user/" + options['user']
-    }
-    optionString += "?"
+    let optionString: string = '/?page=rss&'
     for(let propName in options){
         if(propName == "sortDirection"){
             switch (options[propName]) {
@@ -83,7 +80,7 @@ function serializeOptions(options: searchOptions):string{
                     break;
             }
         }
-        if (propName != 'user' && propName != 'advanced'){
+        if (propName != 'advanced'){
             optionString += `${argValues[argStringValues.indexOf(propName)]}=${options[propName]}&`
         }
     }
@@ -113,12 +110,12 @@ function main(){
         term: "attack on titan",
         category: "Anime English-translated",
         filter: 0,
-        // user: "NoobSubs",
+        user: "NoobSubs",
         page: 0,
         sortType: "comments",
         sortDirection: "Descending"
     }
-    searchNyaa(searchTest)
+    searchNyaa(searchTest).then(response => console.dir(response))
 }
 
 main()

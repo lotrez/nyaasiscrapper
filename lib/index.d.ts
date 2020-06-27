@@ -4,7 +4,17 @@
 
 /*~ If this module has methods, declare them as functions like so.
  */
-export function searchNyaa(options: searchOptions): item[];
+
+/**
+ * General function, will give you results with your parameters
+ * @param options 
+ */
+export function searchNyaa(options: searchOptions): animeItem[];
+/**
+ * Advanced function, used to get info only available on the page itself, is called for every result when advanced is used in searchNyaa()
+ * @param item 
+ */
+export function advancedInfo(item: animeItem): animeItem;
 
 /**
  * @property {string} term - The term you want to search for, can be empty.
@@ -14,7 +24,7 @@ export function searchNyaa(options: searchOptions): item[];
  * @property {number} page - Page, can be empty.
  * @property {string} sortType - Sort type, can be seeders or any info, can be empty.
  * @property {string} sortDirection - Ascending or Descending, can be empty but defaults to descending.
- * @property {boolean} advanced - wether you want to get the info only on the page itself such as description, infohash, comments or files.
+ * @property {boolean} advanced - General scraping is by rss which means I don't get directlhy magnet, user, comments or files but if enabled it will see the page iteself to get it.
  */
 
 export interface searchOptions {
@@ -28,10 +38,11 @@ export interface searchOptions {
     advanced?: boolean;
 }
 
-export interface item{
+export interface animeItem{
     title: string;
-    category: stringCat | numberCat;
-    magnet: string;
+    category: numberCat;
+    categoryId: stringCat;
+    magnet?: string;
     downloadUrl: string;
     size: string;
     date: Date;
@@ -40,8 +51,11 @@ export interface item{
     grabs: number;
     nyaaUrl: string;
     user?: string;
-    infoHash?: string;
+    infoHash: string;
     files?: file[];
+    trusted: boolean;
+    remake: boolean;
+    description: string;
     comments?: comment[];
 }
 
