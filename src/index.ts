@@ -152,28 +152,33 @@ function advancedInfo(item: animeItem, pageData: string):animeItem{
     item["description"] = description
     let filePanel = body[0].childNodes[4].childNodes[5]
     let filesItems: file[] = []
-    if (filePanel.childNodes[3].childNodes[1].childNodes[1].childNodes.length == 3){
-        //  un fichier
-        let fileTemp = filePanel.childNodes[3].childNodes[1].childNodes[1]
-        let fileItem: file = {
-            title: fileTemp.childNodes[1].rawText,
-            size: fileTemp.childNodes[2].childNodes[0].rawText
-        }
-        filesItems.push(fileItem)
-    }else{
-        let filesDiv = filePanel.childNodes[3].childNodes[1].childNodes[1].childNodes[3]
-        var filesDivChildren = filesDiv.childNodes
-        filesDivChildren.forEach((childDiv:any) => {
-            if(childDiv.tagName == 'li'){
-                let fileItem: file = {
-                    title: childDiv.childNodes[1].rawText,
-                    size: childDiv.childNodes[2].childNodes[0].rawText
-                }
-                filesItems.push(fileItem)
+    try{
+
+        if (filePanel.childNodes[3].childNodes[1].childNodes[1].childNodes.length == 3){
+            //  un fichier
+            let fileTemp = filePanel.childNodes[3].childNodes[1].childNodes[1]
+            let fileItem: file = {
+                title: fileTemp.childNodes[1].rawText,
+                size: fileTemp.childNodes[2].childNodes[0].rawText
             }
-        });
+            filesItems.push(fileItem)
+        }else{
+            let filesDiv = filePanel.childNodes[3].childNodes[1].childNodes[1].childNodes[3]
+            var filesDivChildren = filesDiv.childNodes
+            filesDivChildren.forEach((childDiv:any) => {
+                if(childDiv.tagName == 'li'){
+                    let fileItem: file = {
+                        title: childDiv.childNodes[1].rawText,
+                        size: childDiv.childNodes[2].childNodes[0].rawText
+                    }
+                    filesItems.push(fileItem)
+                }
+            });
+        }
+        item["files"] = filesItems
+    }catch{
+        item["files"] = undefined
     }
-    item["files"] = filesItems
     return item
 }
 
@@ -314,3 +319,9 @@ export declare type stringCat =
     'Software' |
     'Applications' |
     'Games';
+
+var search = searchNyaa({
+    "term": "attack on titan",
+    "advanced": true
+});
+search.then((results) => console.dir(results))

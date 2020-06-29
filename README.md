@@ -78,3 +78,4 @@ animeItem is the type of result you get using this module.
 * #### more tests
 * #### better error handling (pretty much non existent)
 * #### comment scrapping
+* #### better file scrapping currently haven't implemented recursion to get all folders
