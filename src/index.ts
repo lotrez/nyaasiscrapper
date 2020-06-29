@@ -1,5 +1,5 @@
 'use strict'
-import { numberCat, searchOptions, animeItem, file } from "./index.d";
+// import { numberCat, searchOptions, animeItem, file } from "./index.d";
 import { numberCatValues, stringCatValues, argStringValues, argValues } from "./values"
 import { serialize } from "v8";
 const fetch = require('node-fetch');
@@ -20,11 +20,11 @@ const HEADERS = {
 
 const NYAA_URL = "https://nyaa.si"
 
-function fetchTry(i, limit, itemArray, resolve) {
+function fetchTry(i: number, limit: number, itemArray: animeItem[], resolve: any) {
     fetch(itemArray[i]["nyaaUrl"])
-        .then((response) => response.text())
+        .then((response: any) => response.text())
         .then(
-            (response) => advancedInfo(itemArray[i], response)
+            (response: string) => advancedInfo(itemArray[i], response)
         )
         .then(() => {
             i++
@@ -34,9 +34,13 @@ function fetchTry(i, limit, itemArray, resolve) {
                 resolve(itemArray)
             }
         })
-        .catch((error) => console.log(error))
+        .catch((error: string) => console.log(error))
 }
 
+/**
+ * General function, will give you results with your parameters, solwer with advanced and even slower if advanced and more than 14 results
+ * @param options
+ */
 export async function searchNyaa(options: searchOptions){
     let optionsCleaned = cleanOptions(options)
 
@@ -44,11 +48,11 @@ export async function searchNyaa(options: searchOptions){
     console.log(optionsSerialized)
     return new Promise(resolve => {
         fetch(NYAA_URL + optionsSerialized)
-            .then((response) => response.text())
-            .then(data => {
+            .then((response: any) => response.text())
+            .then((data:string) => {
                 resolve(parseData(data, optionsCleaned))
             })
-            .catch(error => {
+            .catch((error:string) => {
                 throw(error);
             });
 
@@ -63,7 +67,7 @@ async function parseData(data: string, options: searchOptions){
         // only one result
         jsonData = [jsonData]
     }
-    jsonData.forEach(anime => {
+    jsonData.forEach((anime: any) => {
         let item: animeItem = {
             title: anime["title"],
             downloadUrl: anime["link"],
@@ -88,9 +92,9 @@ async function parseData(data: string, options: searchOptions){
             var nArray = await Promise.all(
                 itemArray.map(
                     item => fetch(item["nyaaUrl"])
-                    .then((response) => response.text())
+                    .then((response:any) => response.text())
                     .then(
-                        (response) => advancedInfo(item, response)
+                        (response:string) => advancedInfo(item, response)
                     )
                 )
             )
@@ -108,8 +112,8 @@ async function parseData(data: string, options: searchOptions){
 }
 
 /**
- * function that does the parsing of the nyaaUrl page
- * @param item 
+ * Advanced function, used to get info only available on the page itself, is called for every result when advanced is used in searchNyaa()
+ * @param item
  */
 export function advancedInfo(item: animeItem, pageData: string):animeItem{
     const root = HTMLParser.parse(pageData)
@@ -141,7 +145,7 @@ export function advancedInfo(item: animeItem, pageData: string):animeItem{
     }else{
         let filesDiv = filePanel.childNodes[3].childNodes[1].childNodes[1].childNodes[3]
         var filesDivChildren = filesDiv.childNodes
-        filesDivChildren.forEach(childDiv => {
+        filesDivChildren.forEach((childDiv:any) => {
             if(childDiv.tagName == 'li'){
                 let fileItem: file = {
                     title: childDiv.childNodes[1].rawText,
@@ -193,19 +197,102 @@ function cleanOptions<searchOptions>(options: searchOptions){
     return(options)
 }
 
-function main(){
-    let searchTest: searchOptions = {
-        term: "Plunderer",
-        // term: "[Arisaka] Plunderer - 24 VOSTFR [720p]",
-        // category: "Anime English-translated",
-        // filter: 0,
-        // user: "NoobSubs",
-        page: 0,
-        sortType: "comments",
-        sortDirection: "Descending",
-        advanced: true
-    }
-    searchNyaa(searchTest).then(response => console.dir(response))
+/**
+ * @property {string} term - The term you want to search for, can be empty.
+ * @property {stringCat | numberCat} category - Category, either in the form of '0_0' or 'All', can be empty.
+ * @property {number} filter - filter 0 for none, 1 no remakes and 2 Trusted only, can be empty.
+ * @property {string} user - User, can be empty.
+ * @property {number} page - Page, can be empty.
+ * @property {string} sortType - Sort type, can be seeders or any info, can be empty.
+ * @property {string} sortDirection - Ascending or Descending, can be empty but defaults to descending.
+ * @property {boolean} advanced - General scraping is by rss which means I don't get directlhy magnet, user, comments or files but if enabled it will see the page iteself to get it.
+ */
+
+export interface searchOptions {
+    term?: string;
+    category?: stringCat | numberCat;
+    filter?: 0 | 1 | 2;
+    user?: string;
+    page?: number;
+    sortType?: "comments" | "size" | "Date" | "seeders" | "leechers" | "downloads" | "id";
+    sortDirection?: "Ascending" | "Descending" | "desc" | "asc";
+    advanced?: boolean;
 }
 
-main()
+export interface animeItem {
+    title: string;
+    category: numberCat;
+    categoryId: stringCat;
+    downloadUrl: string;
+    size: string;
+    date: Date;
+    seeders: number;
+    leechers: number;
+    grabs: number;
+    nyaaUrl: string;
+    infoHash: string;
+    trusted: boolean;
+    remake: boolean;
+    description?: string;
+    magnet?: string;
+    user?: string;
+    files?: file[];
+    comments?: comment[];
+}
+
+export interface file {
+    title: string;
+    size: string;
+}
+
+export interface comment {
+    user: string;
+    content: string;
+    date: Date;
+}
+
+export declare type numberCat =
+    '0_0' |
+    '1_1' |
+    '1_2' |
+    '1_3' |
+    '1_4' |
+    '2_1' |
+    '2_2' |
+    '3_1' |
+    '3_2' |
+    '3_3' |
+    '4_1' |
+    '4_2' |
+    '4_3' |
+    '4_4' |
+    '5_1' |
+    '5_2' |
+    '6_1' |
+    '6_2';
+
+export declare type stringCat =
+    'All' |
+    'Anime' |
+    'Anime Music Video' |
+    'Anime English-translated' |
+    'Anime Non-English-translated' |
+    'Anime Raw' |
+    'Audio' |
+    'Lossless' |
+    'Lossy' |
+    'Literature' |
+    'Literature English-translated' |
+    'Literature Non-English-translated' |
+    'Literature Raw' |
+    'Live Action' |
+    'Live Action English-translated' |
+    'Idol/Promotional Video' |
+    'Live Action Non-English-translated' |
+    'Live Action Raw' |
+    'Pictures' |
+    'Graphics' |
+    'Photos' |
+    'Software' |
+    'Applications' |
+    'Games';

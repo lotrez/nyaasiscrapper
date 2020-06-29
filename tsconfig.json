@@ -1,0 +1,46 @@
+// {
+//   "compilerOptions": {
+//     "allowJs": true,
+//     "target": "es6",
+//     "module": "commonjs",
+//     "declaration": true,
+//     "outDir": "./lib",
+//     "sourceMap": true,                     /* Generates corresponding '.map' file. */
+//     // "strict": true,
+//     // "esModuleInterop": true,   
+//     "rootDir": "./src",              
+//   },
+//   "include": [
+//     "./src/*"
+//   ]
+// }
+{
+  "compilerOptions": {
+    "target": "es5",
+    "allowJs": true,
+    "moduleResolution": "node",
+    "module": "commonjs",
+    "declaration": true,
+    "noLib": false,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "sourceMap": true,
+    "pretty": true,
+    "allowUnreachableCode": true,
+    "allowUnusedLabels": true,
+    // "noImplicitAny": true,
+    // "noImplicitReturns": false,
+    // "noImplicitUseStrict": false,
+    "outDir": "lib",
+    "rootDir": "src",
+    "listFiles": true,
+    // "noEmitHelpers": true
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+  "compileOnSave": false
+}
