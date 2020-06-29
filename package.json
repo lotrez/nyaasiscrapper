@@ -1,15 +1,24 @@
 {
   "name": "nyaasiscrapper",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "A light scrapper for nyaasi",
-  "main": "./src/index.ts",
-  "types": "./src/index.d.ts",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "scripts": {
     "test": "jest --config jestconfig.json",
     "start": "node --inspect=5858 -r ./node_modules/ts-node/register ./src/index.ts",
     "start:watch": "nodemon --exec 'node --inspect=5858 --require ts-node/register ./src/index.ts' -L -e ts,json,js",
-    "build": "./node_modules/.bin/tsc"
+    "build": "./node_modules/.bin/tsc",
+    "prepare": "npm run build",
+    "lint": "./node_modules/.bin/eslint",
+    "prepublishOnly": "npm test && npm run lint",
+    "preversion": "npm run lint",
+    "postversion": "git push && git push --tags",
+    "version": "npm run format && git add -A src"
   },
+  "files": [
+    "lib/**/*"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/lotrez/nyaasiscrapper.git"
@@ -28,6 +37,9 @@
   "homepage": "https://github.com/lotrez/nyaasiscrapper#readme",
   "devDependencies": {
     "@types/jest": "^26.0.3",
+    "@typescript-eslint/eslint-plugin": "^3.5.0",
+    "@typescript-eslint/parser": "^3.5.0",
+    "eslint": "^7.3.1",
     "jest": "^26.1.0",
     "ts-jest": "^26.1.1",
     "typescript": "^3.9.5"

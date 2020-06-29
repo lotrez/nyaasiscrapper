@@ -25,7 +25,7 @@ test('single result', () => {
     var data = searchNyaa({
         "term": "plunderer 24 vostfr",
         "user": "keeso"
-    }).then((val: animeItem[]) => { console.dir(val); expect(typeof(val)).toBe(typeof(expectedResult))})
+    }).then((val: animeItem[]) => { expect(typeof(val)).toBe(typeof(expectedResult))})
 });
 test('single advanced result', () => {
     var expectedResult: animeItem = {
@@ -47,5 +47,5 @@ test('single advanced result', () => {
         "term": "plunderer 24 vostfr",
         "user": "keeso",
         advanced: true
-    }).then((val: animeItem[]) => { console.dir(val); expect(typeof(val)).toBe(typeof(expectedResult))})
+    }).then((val: animeItem[]) => { expect(typeof(val)).toBe(typeof(expectedResult))})
 });
