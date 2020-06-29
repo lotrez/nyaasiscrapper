@@ -1,6 +1,7 @@
 # Nyaascrapper
 
 [![npm version](https://badge.fury.io/js/nyaasiscrapper.svg)](https://www.npmjs.com/package/nyaasiscrapper)
+
 Nyaascrapper is a simple tool to search and index nyaa.si
 
 # Installation
