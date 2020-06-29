@@ -45,7 +45,6 @@ export async function searchNyaa(options: searchOptions){
     let optionsCleaned = cleanOptions(options)
 
     let optionsSerialized = serializeOptions(optionsCleaned)
-    console.log(optionsSerialized)
     return new Promise(resolve => {
         fetch(NYAA_URL + optionsSerialized)
             .then((response: any) => response.text())
@@ -68,6 +67,9 @@ async function parseData(data: string, options: searchOptions){
         jsonData = [jsonData]
     }
     jsonData.forEach((anime: any) => {
+        var remake: boolean,trusted: boolean
+        anime["nyaa:remake"] == 'No' ? remake = false : remake = true
+        anime["nyaa:trusted"] == 'No' ? trusted = false : trusted = true
         let item: animeItem = {
             title: anime["title"],
             downloadUrl: anime["link"],
@@ -79,8 +81,8 @@ async function parseData(data: string, options: searchOptions){
             infoHash: anime["nyaa:infoHash"],
             category: anime["nyaa:category"],
             categoryId: anime["nyaa:categoryId"],
-            remake: anime["nyaa:remake"],
-            trusted: anime["nyaa:trusted"],
+            remake: remake,
+            trusted: trusted,
             size: anime["nyaa:size"],
         }
         itemArray.push(item)
@@ -221,8 +223,8 @@ export interface searchOptions {
 
 export interface animeItem {
     title: string;
-    category: numberCat;
-    categoryId: stringCat;
+    category: stringCat;
+    categoryId: numberCat;
     downloadUrl: string;
     size: string;
     date: Date;
@@ -275,21 +277,21 @@ export declare type stringCat =
     'All' |
     'Anime' |
     'Anime Music Video' |
-    'Anime English-translated' |
-    'Anime Non-English-translated' |
-    'Anime Raw' |
+    'Anime - English-translated' |
+    'Anime - Non-English-translated' |
+    'Anime - Raw' |
     'Audio' |
     'Lossless' |
     'Lossy' |
     'Literature' |
     'Literature English-translated' |
-    'Literature Non-English-translated' |
-    'Literature Raw' |
+    'Literature - Non-English-translated' |
+    'Literature - Raw' |
     'Live Action' |
-    'Live Action English-translated' |
+    'Live Action - English-translated' |
     'Idol/Promotional Video' |
-    'Live Action Non-English-translated' |
-    'Live Action Raw' |
+    'Live Action - Non-English-translated' |
+    'Live Action - Raw' |
     'Pictures' |
     'Graphics' |
     'Photos' |
