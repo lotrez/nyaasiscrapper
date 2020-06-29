@@ -6,7 +6,7 @@
  */
 
 /**
- * General function, will give you results with your parameters
+ * General function, will give you results with your parameters, solwer with advanced and even slower if advanced and more than 14 results
  * @param options 
  */
 export function searchNyaa(options: searchOptions): animeItem[];
@@ -52,7 +52,7 @@ export interface animeItem{
     infoHash: string;
     trusted: boolean;
     remake: boolean;
-    description: string;
+    description?: string;
     magnet?: string;
     user?: string;
     files?: file[];

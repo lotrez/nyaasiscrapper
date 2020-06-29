@@ -1,8 +1,9 @@
 {
   "name": "nyaasiscrapper",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "A light scrapper for nyaasi",
   "main": "./lib/index.ts",
+  "types": "./lib/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node --inspect=5858 -r ./node_modules/ts-node/register ./lib/index.ts",
