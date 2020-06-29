@@ -41,7 +41,7 @@ function fetchTry(i: number, limit: number, itemArray: animeItem[], resolve: any
  * General function, will give you results with your parameters, solwer with advanced and even slower if advanced and more than 14 results
  * @param options
  */
-export async function searchNyaa(options: searchOptions){
+export async function searchNyaa(options: searchOptions = {}){
     let optionsCleaned = cleanOptions(options)
 
     let optionsSerialized = serializeOptions(optionsCleaned)
@@ -89,27 +89,43 @@ async function parseData(data: string, options: searchOptions){
     });
     if(options.advanced){
         // advanced, need to get more info before returning
-        if(itemArray.length < 14){
-            // instant but gets rate limited > 14 requests
-            var nArray = await Promise.all(
-                itemArray.map(
-                    item => fetch(item["nyaaUrl"])
-                    .then((response:any) => response.text())
-                    .then(
-                        (response:string) => advancedInfo(item, response)
-                    )
-                )
-            )
-            return(nArray)
-        }else{
-            var prom = new Promise<animeItem>((resolve, reject) => {
-                fetchTry(0,itemArray.length,itemArray, resolve)
-            })
-            await prom
-            return prom
-        }
+        return await getAdvancedInfos(itemArray)
     }else{
         return itemArray
+    }
+}
+
+/**
+ * Call that function with an animeItem or an array and you'll get more info
+ * @param items 
+ */
+export async function getAdvancedInfos(items: animeItem[] | animeItem){
+    if(!Array.isArray(items)){
+        const notARRAY = true
+        var itemArray: animeItem[] = [items]
+    }
+    else{
+        const notARRAY = false
+        var itemArray: animeItem[] = items
+    }
+    if (itemArray.length < 14) {
+        // instant but gets rate limited > 14 requests
+        var nArray = await Promise.all(
+            itemArray.map(
+                item => fetch(item["nyaaUrl"])
+                    .then((response: any) => response.text())
+                    .then(
+                        (response: string) => advancedInfo(item, response)
+                    )
+            )
+        )
+        return (nArray)
+    } else {
+        var prom = new Promise<animeItem>((resolve, reject) => {
+            fetchTry(0, itemArray.length, itemArray, resolve)
+        })
+        await prom
+        return prom
     }
 }
 
@@ -117,7 +133,7 @@ async function parseData(data: string, options: searchOptions){
  * Advanced function, used to get info only available on the page itself, is called for every result when advanced is used in searchNyaa()
  * @param item
  */
-export function advancedInfo(item: animeItem, pageData: string):animeItem{
+function advancedInfo(item: animeItem, pageData: string):animeItem{
     const root = HTMLParser.parse(pageData)
     // need to get magnet, user, files and comments
     let body = root.querySelectorAll("body")
@@ -186,7 +202,7 @@ function serializeOptions(options: searchOptions):string{
  * @param options 
  */
 function cleanOptions<searchOptions>(options: searchOptions){
-    if(options['category']){
+    if(options['category'] != undefined){
         if(options['category'].length != 3){
             // not in x_x format
             let index = stringCatValues.indexOf(options['category'])
