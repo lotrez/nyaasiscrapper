@@ -1,22 +1,8 @@
 'use strict'
-// import { numberCat, searchOptions, animeItem, file } from "./index.d";
 import { numberCatValues, stringCatValues, argStringValues, argValues } from "./values"
-import { serialize } from "v8";
 const fetch = require('node-fetch');
 var parser = require('fast-xml-parser');
 var HTMLParser = require('node-html-parser');
-
-const HEADERS = {
-    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-    "accept-language": "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7,de;q=0.6",
-    "cache-control": "max-age=0",
-    "sec-fetch-dest": "document",
-    "sec-fetch-mode": "navigate",
-    "sec-fetch-site": "none",
-    "sec-fetch-user": "?1",
-    "Cookie": "__ddg1=7wvAcwZ1UZURYCaMUOQ3; session=eyJjc3JmX3Rva2VuIjoiMzNmNzZmOGMxZDcyYzk3YmVhYmMxYjRlZTIzMzIyYmJhYjY5MDRjMiJ9.XvoLDQ.FX22V28ms6jBAIvZdZvLIZCPGT8",
-    "upgrade-insecure-requests": "1"
-}
 
 const NYAA_URL = "https://nyaa.si"
 
