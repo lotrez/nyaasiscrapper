@@ -31,6 +31,9 @@ export async function searchNyaa(options: searchOptions = {}){
     let optionsCleaned = cleanOptions(options)
 
     let optionsSerialized = serializeOptions(optionsCleaned)
+
+    console.log(optionsSerialized)
+
     return new Promise(resolve => {
         fetch(NYAA_URL + optionsSerialized)
             .then((response: any) => response.text())
@@ -47,6 +50,11 @@ export async function searchNyaa(options: searchOptions = {}){
 async function parseData(data: string, options: searchOptions){
     let itemArray: animeItem[] = []
     let jsonData = parser.parse(data)
+    try{
+        if (jsonData["rss"]["channel"]["item"] == undefined){
+            return[]
+        }
+    }catch{}
     jsonData = jsonData["rss"]["channel"]["item"]
     if (jsonData.length == undefined){
         // only one result
@@ -115,6 +123,44 @@ export async function getAdvancedInfos(items: animeItem[] | animeItem){
     }
 }
 
+function parseFiles(fileParent: HTMLElement, emplacement: string): file[]{
+    var fileArray: file[] = []
+
+
+    // single file case
+    if(fileParent.childNodes.length == 3){
+        fileArray = [{
+            //@ts-ignore
+            title: fileParent.childNodes[1].rawText,
+            //@ts-ignore
+            size: fileParent.childNodes[2].childNodes[0].rawText,
+            parentDir: '/'
+        }]
+        return fileArray
+    }
+
+    for(let i; i < fileParent.childNodes.length; i++){
+        let div = fileParent[i]
+        switch (div.nodeType) {
+            case 3:
+                continue
+                break;
+            case 1:
+                if(div.attributes.class.contains('folder')){
+                    // parseFiles(div, )
+                }
+                break;
+            default:
+                break;
+        }
+        if(div.nodeType == 3){
+            continue
+        }
+    }
+
+    return fileArray
+}
+
 /**
  * Advanced function, used to get info only available on the page itself, is called for every result when advanced is used in searchNyaa()
  * @param item
@@ -137,34 +183,9 @@ function advancedInfo(item: animeItem, pageData: string):animeItem{
     let description = descriptionPanel.childNodes[1].childNodes[0].rawText
     item["description"] = description
     let filePanel = body[0].childNodes[4].childNodes[5]
-    let filesItems: file[] = []
-    try{
-
-        if (filePanel.childNodes[3].childNodes[1].childNodes[1].childNodes.length == 3){
-            //  un fichier
-            let fileTemp = filePanel.childNodes[3].childNodes[1].childNodes[1]
-            let fileItem: file = {
-                title: fileTemp.childNodes[1].rawText,
-                size: fileTemp.childNodes[2].childNodes[0].rawText
-            }
-            filesItems.push(fileItem)
-        }else{
-            let filesDiv = filePanel.childNodes[3].childNodes[1].childNodes[1].childNodes[3]
-            var filesDivChildren = filesDiv.childNodes
-            filesDivChildren.forEach((childDiv:any) => {
-                if(childDiv.tagName == 'li'){
-                    let fileItem: file = {
-                        title: childDiv.childNodes[1].rawText,
-                        size: childDiv.childNodes[2].childNodes[0].rawText
-                    }
-                    filesItems.push(fileItem)
-                }
-            });
-        }
-        item["files"] = filesItems
-    }catch{
-        item["files"] = undefined
-    }
+    let fileParent = filePanel.childNodes[3].childNodes[1].childNodes[1]
+    let filesItems: file[] = parseFiles(fileParent, '/')
+    item["files"] = filesItems
     return item
 }
 
@@ -252,6 +273,7 @@ export interface animeItem {
 export interface file {
     title: string;
     size: string;
+    parentDir: string;
 }
 
 export interface comment {
@@ -305,9 +327,3 @@ export declare type stringCat =
     'Software' |
     'Applications' |
     'Games';
-
-var search = searchNyaa({
-    "term": "attack on titan",
-    "advanced": true
-});
-search.then((results) => console.dir(results))
