@@ -20,7 +20,7 @@ function fetchTry(i: number, limit: number, itemArray: animeItem[], resolve: any
                 resolve(itemArray)
             }
         })
-        .catch((error: string) => console.log(error))
+        .catch((error: string) => console.error(error))
 }
 
 /**
@@ -32,9 +32,7 @@ export async function searchNyaa(options: searchOptions = {}){
 
     let optionsSerialized = serializeOptions(optionsCleaned)
 
-    console.log(optionsSerialized)
-
-    return new Promise(resolve => {
+    return new Promise<animeItem[]>(resolve => {
         fetch(NYAA_URL + optionsSerialized)
             .then((response: any) => response.text())
             .then((data:string) => {
@@ -104,7 +102,7 @@ export async function getAdvancedInfos(items: animeItem[] | animeItem){
     }
     if (itemArray.length < 14) {
         // instant but gets rate limited > 14 requests
-        var nArray = await Promise.all(
+        var nArray = await Promise.all<animeItem>(
             itemArray.map(
                 item => fetch(item["nyaaUrl"])
                     .then((response: any) => response.text())
@@ -115,7 +113,7 @@ export async function getAdvancedInfos(items: animeItem[] | animeItem){
         )
         return (nArray)
     } else {
-        var prom = new Promise<animeItem>((resolve, reject) => {
+        var prom = new Promise<animeItem[]>((resolve, reject) => {
             fetchTry(0, itemArray.length, itemArray, resolve)
         })
         await prom
@@ -123,10 +121,13 @@ export async function getAdvancedInfos(items: animeItem[] | animeItem){
     }
 }
 
-function parseFiles(fileParent: HTMLElement, emplacement: string): file[]{
+var ITERATION = 0
+
+function parseFiles(fileParent: HTMLElement, emplacement: string = ""): file[]{
+    ITERATION ++ 
     var fileArray: file[] = []
 
-
+    // console.dir(emplacement)
     // single file case
     if(fileParent.childNodes.length == 3){
         fileArray = [{
@@ -134,27 +135,50 @@ function parseFiles(fileParent: HTMLElement, emplacement: string): file[]{
             title: fileParent.childNodes[1].rawText,
             //@ts-ignore
             size: fileParent.childNodes[2].childNodes[0].rawText,
-            parentDir: '/'
+            parentDir: (emplacement == '') ? '/' : emplacement
         }]
         return fileArray
     }
 
-    for(let i; i < fileParent.childNodes.length; i++){
-        let div = fileParent[i]
+    // more than one file, recursive calling of parseFiles
+    for(let i = 0; i < fileParent.childNodes.length; i++){
+        let div = fileParent.childNodes[i]
         switch (div.nodeType) {
             case 3:
+                // who cares
                 continue
                 break;
             case 1:
-                if(div.attributes.class.contains('folder')){
-                    // parseFiles(div, )
+                // either a folder or a file
+                //@ts-ignore
+                if(div.tagName == 'ul'){
+                    continue
                 }
+                //@ts-ignore
+                else if(div.attributes.class.includes('folder')){
+                    //@ts-ignore
+                    if(div.tagName == 'a'){
+                        // for every <li> tag in the +2 div we need to call again
+
+                        //@ts-ignore
+                        for (let y = 0; y < fileParent.childNodes[i + 2].childNodes.length; y++){
+                            if (fileParent.childNodes[i + 2].childNodes[y].nodeType == 3){
+                                continue
+                            }
+                            //@ts-ignore
+                            if (fileParent.childNodes[i + 2].childNodes[y].tagName == 'li'){
+                                //@ts-ignore
+                                let tempArray: file[] = parseFiles(fileParent.childNodes[i + 2].childNodes[y], emplacement + "/" + div.rawText)
+                                fileArray = fileArray.concat(tempArray)
+                            }
+                        }
+                    }
+                    // console.dir(fileArray)
+                }
+                // else if(div.att)
                 break;
             default:
                 break;
-        }
-        if(div.nodeType == 3){
-            continue
         }
     }
 
@@ -184,7 +208,7 @@ function advancedInfo(item: animeItem, pageData: string):animeItem{
     item["description"] = description
     let filePanel = body[0].childNodes[4].childNodes[5]
     let fileParent = filePanel.childNodes[3].childNodes[1].childNodes[1]
-    let filesItems: file[] = parseFiles(fileParent, '/')
+    let filesItems: file[] = parseFiles(fileParent)
     item["files"] = filesItems
     return item
 }
