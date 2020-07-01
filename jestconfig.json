@@ -11,5 +11,5 @@
         "json",
         "node"
     ],
-    "testEnvironment": "node"
+    "verbose": true
 }

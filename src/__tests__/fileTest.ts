@@ -4,11 +4,11 @@ describe("file tests", () => {
     
     test('Files parser test: singular file', () => {
         let opts: searchOptions = {
-            term: "Koitaku",
-            category: "6_2",
+            term: "Tokyo Ghoul re Volume 16",
+            category: "3_1",
             advanced: true
         }
-        let resultExpected: file[] = [{ title: 'Koitaku.rar ', size: '(32.5 GiB)', parentDir: '/' }]
+        let resultExpected: file[] = [{ title: 'Tokyo Ghoul re Volume 16.cbz ', size: '(316.4 MiB)', parentDir: '/' }]
         searchNyaa(opts).then((results) => { expect(results[0].files).toStrictEqual(resultExpected)})
     });
     

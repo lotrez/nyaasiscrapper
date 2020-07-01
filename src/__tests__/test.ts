@@ -1,9 +1,11 @@
 import { searchNyaa, searchOptions, animeItem } from "../index"
 
 test('75 results', () => {
-    var data = searchNyaa({
+    searchNyaa({
         "term": "attack on titan"
-    }).then((val: animeItem[]) => expect(val.length).toBe(75))
+    }).then((val: animeItem[]) => {
+        expect(val.length).toBe(75);
+    })
 });
 
 test('single result', () => {

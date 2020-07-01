@@ -5,7 +5,7 @@
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "scripts": {
-    "test": "jest --config jestconfig.json",
+    "test": "jest --config jestconfig.json --runInBand",
     "start": "node --inspect=5858 -r ./node_modules/ts-node/register ./src/index.ts",
     "start:watch": "nodemon --exec 'node --inspect=5858 --require ts-node/register ./src/index.ts' -L -e ts,json,js",
     "start:test": "nodemon --exec 'node --inspect=5858 --require ts-node/register ./src/__tests__/fileTest.ts' -L -e ts,json,js",
