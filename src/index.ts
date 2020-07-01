@@ -92,14 +92,8 @@ async function parseData(data: string, options: searchOptions){
  * @param items 
  */
 export async function getAdvancedInfos(items: animeItem[] | animeItem){
-    if(!Array.isArray(items)){
-        const notARRAY = true
-        var itemArray: animeItem[] = [items]
-    }
-    else{
-        const notARRAY = false
-        var itemArray: animeItem[] = items
-    }
+    // case of single element sent
+    var itemArray: animeItem[] = (!Array.isArray(items)) ? [items] : items
     if (itemArray.length < 14) {
         // instant but gets rate limited > 14 requests
         var nArray = await Promise.all<animeItem>(
@@ -109,6 +103,7 @@ export async function getAdvancedInfos(items: animeItem[] | animeItem){
                     .then(
                         (response: string) => advancedInfo(item, response)
                     )
+                    .catch((error: string) => console.error(error))
             )
         )
         return (nArray)
@@ -208,9 +203,41 @@ function advancedInfo(item: animeItem, pageData: string):animeItem{
     item["description"] = description
     let filePanel = body[0].childNodes[4].childNodes[5]
     let fileParent = filePanel.childNodes[3].childNodes[1].childNodes[1]
+    let commentsPanel = body[0].childNodes[4].childNodes[7]
+    let comments: comment[] = parseComments(commentsPanel)
+    item["comments"] = comments
     let filesItems: file[] = parseFiles(fileParent)
     item["files"] = filesItems
     return item
+}
+
+function parseComments(panel: HTMLElement): comment[]{
+    var comments: comment[] = []
+    var commentsDiv = panel.childNodes[3]
+    commentsDiv.childNodes.forEach(commentDiv => {
+        if(commentDiv.nodeType != 3){
+            // nodeType 3 is wrong nodeType, fuck nodeTypes 3
+            let avatarDiv = commentDiv.childNodes[1].childNodes[1]
+            let contentDiv = commentDiv.childNodes[1].childNodes[3]
+            // @ts-ignore
+            let commentContent = contentDiv.childNodes[3].structuredText
+            // @ts-ignore
+            let date: string = contentDiv.childNodes[1].structuredText
+            let edited = date.includes("(edited)")
+            date = date.replace(' (edited)', '')
+            let properDate: Date = new Date(date)
+            // @ts-ignore
+            let user = avatarDiv.structuredText
+            let comment: comment = {
+                "content": commentContent,
+                "date": properDate,
+                "user": user,
+                "edited": edited
+            }
+            comments.push(comment)
+        }
+    })
+    return comments
 }
 
 function serializeOptions(options: searchOptions):string{
@@ -304,6 +331,7 @@ export interface comment {
     user: string;
     content: string;
     date: Date;
+    edited: boolean;
 }
 
 export declare type numberCat =

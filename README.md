@@ -72,10 +72,9 @@ animeItem is the type of result you get using this module.
 | **magnet** [advanced] | `string` | magnet link
 | **user** [advanced] | `string` | uploader
 | **files** [advanced] | `file[]` | array of files that have a title, size and emplacement property
-| **comments** [advanced] | `not there yet` | wip
+| **comments** [advanced] | `comment[]` | user, content, Date and edited boolean
 
 ## TO DO
 
 * #### more tests
 * #### better error handling (pretty much non existent)
-* #### comment scrapping
